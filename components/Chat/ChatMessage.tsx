@@ -1,6 +1,8 @@
 import {
   IconCheck,
   IconCopy,
+  IconThumbDown,
+  IconThumbUp,
   IconEdit,
   IconRobot,
   IconTrash,
@@ -45,6 +47,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const toggleEditing = () => {
+    setMessageContent(message.content);
     setIsEditing(!isEditing);
   };
 
@@ -63,6 +66,27 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
       }
     }
     setIsEditing(false);
+  };
+
+
+  const handleEditMessage2 = () => {
+    if (message.content != messageContent) {
+      if (selectedConversation && onEdit) {
+        setMessageContent(messageContent);
+      }
+    }
+    message.content = messageContent;
+    setIsEditing(false);
+
+
+    if (!selectedConversation) return;
+
+    const { single, all } = updateConversation(
+      selectedConversation,
+      conversations,
+    );
+    homeDispatch({ field: 'selectedConversation', value: single });
+    homeDispatch({ field: 'conversations', value: all });
   };
 
   const handleDeleteMessage = () => {
@@ -110,6 +134,32 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
         setMessageCopied(false);
       }, 2000);
     });
+  };
+
+  const hasThumbDown =  () => {
+    var input = message.state;
+    return input == "thumbdown";
+  };
+
+  const thumbDown = () => {
+    var input = message.state;
+    if (input == "thumbdown") {
+      message.state = "";
+    } else {
+      message.state = "thumbdown";
+    }
+    console.log(message.state);
+    setMessageContent(message.content);
+
+    if (!selectedConversation) return;
+
+    const { single, all } = updateConversation(
+      selectedConversation,
+      conversations,
+    );
+    homeDispatch({ field: 'selectedConversation', value: single });
+    homeDispatch({ field: 'conversations', value: all });
+
   };
 
   useEffect(() => {
@@ -174,7 +224,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                       {t('Save & Submit')}
                     </button>
                     <button
-                      className="h-[40px] rounded-md border border-neutral-300 px-4 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                      className="h-[40px] rounded-md border border-neutral-300 px-4 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 vvvvvvvv"
                       onClick={() => {
                         setMessageContent(message.content);
                         setIsEditing(false);
@@ -209,7 +259,116 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
             </div>
           ) : (
             <div className="flex flex-row">
-              <MemoizedReactMarkdown
+              <div
+                // className={`absolute ${
+                //   window.innerWidth < 640
+                //     ? 'bottom-1 right-3'
+                //     : 'right-0 top-[26px] m-0'
+                // }`}
+              >
+                
+
+                {/* {messagedCopied ? (
+                  <IconCheck
+                    size={20}
+                    className="text-green-500 dark:text-green-400"
+                  />
+                ) : (
+                  <button
+                    className="translate-x-[1000px] text-gray-500 hover:text-gray-700 focus:translate-x-0 group-hover:translate-x-0 dark:text-gray-400 dark:hover:text-gray-300"
+                    onClick={copyOnClick}
+                  >
+                    <IconCopy size={20} />
+                  </button>
+                )} */}
+
+              {(window.innerWidth < 640 || !isEditing) && (
+                <>
+                <button
+                    className={`absolute translate-x-[1000px] text-gray-500 hover:text-gray-700 focus:translate-x-0 group-hover:translate-x-0 dark:text-gray-400 dark:hover:text-gray-300 ${
+                      window.innerWidth < 640
+                        ? 'bottom-1 right-3'
+                        : 'right-12 top-[26px]'
+                    }
+                      `}
+                    
+                    onClick={thumbDown}
+                  >
+
+                    {hasThumbDown() ? <IconThumbUp size={20} />: <IconThumbDown size={20} />}
+                  </button>
+
+
+                  <button
+                    className={`absolute translate-x-[1000px] text-gray-500 hover:text-gray-700 focus:translate-x-0 group-hover:translate-x-0 dark:text-gray-400 dark:hover:text-gray-300 ${
+                      window.innerWidth < 640
+                        ? 'bottom-1 right-3'
+                        : 'right-6 top-[26px]'
+                    }
+                      `}
+                    onClick={toggleEditing}
+                  >
+                    <IconEdit size={20} />
+                  </button>
+                  <button
+                    className={`absolute translate-x-[1000px] text-gray-500 hover:text-gray-700 focus:translate-x-0 group-hover:translate-x-0 dark:text-gray-400 dark:hover:text-gray-300 ${
+                      window.innerWidth < 640
+                        ? 'bottom-1 right-3'
+                        : 'right-0 top-[26px]'
+                    }
+                      `}
+                    onClick={handleDeleteMessage}
+                  >
+                    <IconTrash size={20} />
+                  </button>
+                </>
+              )}
+
+              </div>
+
+             
+
+                {isEditing ? (
+                <div className="flex w-full flex-col">
+                  <textarea
+                    ref={textareaRef}
+                    className="w-full resize-none whitespace-pre-wrap border-none dark:bg-[#343541]"
+                    value={messageContent}
+                    onChange={handleInputChange}
+                    // onKeyDown={handlePressEnter}
+                    onCompositionStart={() => setIsTyping(true)}
+                    onCompositionEnd={() => setIsTyping(false)}
+                    style={{
+                      fontFamily: 'inherit',
+                      fontSize: 'inherit',
+                      lineHeight: 'inherit',
+                      padding: '0',
+                      margin: '0',
+                      overflow: 'hidden',
+                    }}
+                  />
+
+                  <div className="mt-10 flex justify-center space-x-4">
+                    <button
+                      className="h-[40px] rounded-md bg-blue-500 px-4 py-1 text-sm font-medium text-white enabled:hover:bg-blue-600 disabled:opacity-50"
+                      onClick={handleEditMessage2}
+                      disabled={messageContent.trim().length <= 0}
+                    >
+                      {t('Save & Submit')}
+                    </button>
+                    <button
+                      className="h-[40px] rounded-md border border-neutral-300 px-4 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                      onClick={() => {
+                        setMessageContent(message.content);
+                        setIsEditing(false);
+                      }}
+                    >
+                      {t('Cancel')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <MemoizedReactMarkdown
                 className="prose dark:prose-invert flex-1"
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeMathjax]}
@@ -283,6 +442,9 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
               </div>
             </div>
           )}
+
+
+
         </div>
       </div>
     </div>
